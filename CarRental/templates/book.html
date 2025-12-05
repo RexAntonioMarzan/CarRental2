@@ -1,0 +1,680 @@
+{% extends "base.html" %}
+{% block title %}Book {{ car['name'] }}{% endblock %}
+
+{% block content %}
+
+<style>
+  :root {
+    --modal-bg: rgba(18, 22, 30, 0.92);
+    --border-light: rgba(255, 255, 255, 0.18);
+    --text-muted: #b5b5b5;
+  }
+
+  /* ======================
+     BACKDROP
+  ====================== */
+  .terms-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+    backdrop-filter: blur(4px);
+  }
+  .terms-backdrop.open {
+    display: flex;
+  }
+
+  /* ======================
+     MODAL
+  ====================== */
+  .terms-modal {
+    width: 95%;
+    max-width: 720px;
+    max-height: 83vh;
+    background: var(--modal-bg);
+    backdrop-filter: blur(12px);
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 26px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: modalPop 0.25s ease-out;
+  }
+
+  @keyframes modalPop {
+    from { transform: scale(0.93); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+
+  /* ======================
+     HEADER
+  ====================== */
+  .terms-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .terms-modal-header h2 {
+    font-size: 22px;
+    margin: 0;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.3px;
+  }
+
+  .terms-close-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: #fff;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .terms-close-btn:hover {
+    background: rgba(255,255,255,0.18);
+    transform: scale(1.12);
+  }
+
+  /* ======================
+     BODY
+  ====================== */
+  .terms-modal-body {
+    overflow-y: auto;
+    color: var(--text-muted);
+    font-size: 14.5px;
+    line-height: 1.7;
+    padding-right: 8px;
+  }
+
+  /* ======================
+     DISCOUNT BUTTONS
+  ====================== */
+  .discount-toggle-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 6px;
+  }
+
+  .discount-toggle-btn,
+  .discount-type-btn {
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 13.5px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: #fff;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .discount-toggle-btn:hover,
+  .discount-type-btn:hover {
+    background: rgba(255,255,255,0.14);
+  }
+
+  .discount-toggle-btn.active,
+  .discount-type-btn.active {
+    background: #ffd445;
+    color: #000;
+    border-color: #ffd445;
+    font-weight: 600;
+    box-shadow: 0 0 14px rgba(255,212,69,0.55);
+  }
+
+  .discount-type-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ======================
+     UPLOAD SECTION
+  ====================== */
+  .license-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .license-upload-btn {
+    padding: 10px 20px;
+    border-radius: 50px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: #fff;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .license-upload-btn:hover {
+    background: rgba(255,255,255,0.14);
+  }
+
+  .license-file-label {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    max-width: 260px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ======================
+     PICKUP & RETURN ALIGNMENT
+  ====================== */
+  .datetime-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 10px 0;
+  }
+
+  .datetime-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .datetime-field label {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .datetime-field input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.07);
+    color: #fff;
+    font-size: 14px;
+  }
+
+  .datetime-field input:focus {
+    outline: none;
+    border-color: #ffd445;
+    background: rgba(255,255,255,0.12);
+  }
+</style>
+
+
+
+
+<section class="card" style="padding: 0;">
+  {# IMAGE: use static/ path just like gallery #}
+  {% if car['image_url'] %}
+    <img
+      class="car-image"
+      src="{{ url_for('static', filename=car['image_url']) }}"
+      alt="{{ car['name'] }}"
+    >
+  {% else %}
+    <img
+      class="car-image"
+      src="https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=900&q=80"
+      alt="{{ car['name'] }}"
+    >
+  {% endif %}
+  <div style="padding: 28px; display: flex; flex-direction: column; gap: 20px;">
+
+    <!-- Header -->
+    <div>
+      <div class="badge">{{ car['car_type'] }}</div>
+      <h1 style="margin: 12px 0 6px; font-size: 26px;">{{ car['name'] }}</h1>
+      <p style="margin: 0;">₱{{ '{:,.2f}'.format(car['price_per_day']) }} per day</p>
+    </div>
+
+    <!-- Optional extra description (from DB) -->
+    {% if car.extra_description %}
+      <section style="margin-top: 4px;">
+        <h2 style="font-size: 18px; margin-bottom: 8px;">Car details</h2>
+        {{ car.extra_description | safe }}
+      </section>
+    {% endif %}
+
+    <!-- Reservation form -->
+    <form id="bookingForm" method="post" enctype="multipart/form-data"
+          style="display: flex; flex-direction: column; gap: 18px;">
+
+      <!-- Trip details -->
+      <section>
+        <h2 style="font-size: 18px; margin-bottom: 10px;">Trip details</h2>
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+          <div>
+            <label for="pickup_date">Pickup date</label>
+            <input
+              id="pickup_date"
+              name="pickup_date"
+              type="date"
+              required
+              value="{{ request.form.get('pickup_date', '') }}"
+            >
+          </div>
+          <div>
+            <label for="pickup_time">Pickup time</label>
+            <input
+              id="pickup_time"
+              name="pickup_time"
+              type="time"
+              required
+              value="{{ request.form.get('pickup_time', '') }}"
+            >
+          </div>
+          <div>
+            <label for="return_date">Return date</label>
+            <input
+              id="return_date"
+              name="return_date"
+              type="date"
+              required
+              value="{{ request.form.get('return_date', '') }}"
+            >
+          </div>
+          <div>
+            <label for="return_time">Return time</label>
+            <input
+              id="return_time"
+              name="return_time"
+              type="time"
+              required
+              value="{{ request.form.get('return_time', '') }}"
+            >
+          </div>
+        </div>
+        <p style="margin-top: 8px; font-size: 13px; color: var(--text-muted);">
+          The system will automatically calculate the number of days based on your pickup and return schedule.
+        </p>
+      </section>
+
+      <!-- Add-ons -->
+      <section>
+        <h2 style="font-size: 18px; margin-bottom: 10px;">Add-ons</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">
+          Optional services to make your trip more comfortable.
+        </p>
+        <div style="display: flex; flex-wrap: wrap; gap: 14px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+            <input
+              type="checkbox"
+              name="addon_child_seat"
+              {% if request.form.get('addon_child_seat') %}checked{% endif %}
+            >
+            <span>Child seat – ₱250.00 per day</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+            <input
+              type="checkbox"
+              name="addon_toll_rfid"
+              {% if request.form.get('addon_toll_rfid') %}checked{% endif %}
+            >
+            <span>
+              Toll RFID card (Easytrip/Autosweep) – ₱500.00 per day
+              <span style="font-size: 12px; color: var(--text-muted);">
+                (renter will load the balance)
+              </span>
+            </span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+            <input
+              type="checkbox"
+              name="addon_dashcam"
+              {% if request.form.get('addon_dashcam') %}checked{% endif %}
+            >
+            <span>Dashcam – ₱100.00 per day</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Discount section -->
+      <section>
+        <h2 style="font-size: 18px; margin-bottom: 8px;">Discount</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">
+          If you are eligible (Senior, PWD, or Student), you can request a discount.
+          Valid discount IDs will be verified. Discounts may be declined if the ID does not match.
+        </p>
+
+        <!-- Yes / No toggle -->
+        <div class="discount-toggle-group">
+          <button type="button"
+                  class="discount-toggle-btn active"
+                  data-discount-toggle="no">
+            No, I don’t need a discount
+          </button>
+          <button type="button"
+                  class="discount-toggle-btn"
+                  data-discount-toggle="yes">
+            Yes, I’m eligible for a discount
+          </button>
+        </div>
+
+        <!-- Discount type buttons -->
+        <div id="discountTypeGroup" style="margin-top: 6px; display: flex; gap: 10px; flex-wrap: wrap;">
+          <button type="button"
+                  class="discount-type-btn disabled"
+                  data-discount-type="senior">
+            Senior
+          </button>
+          <button type="button"
+                  class="discount-type-btn disabled"
+                  data-discount-type="pwd">
+            PWD
+          </button>
+          <button type="button"
+                  class="discount-type-btn disabled"
+                  data-discount-type="student">
+            Student
+          </button>
+        </div>
+
+        <!-- Discount ID upload -->
+        <div class="license-row" style="margin-top: 10px;">
+          <input
+            id="discount_id_file"
+            name="discount_id_file"
+            type="file"
+            accept="image/*,.pdf"
+            style="display:none;"
+          >
+          <button type="button" id="discountIdUploadBtn" class="license-upload-btn">
+            Upload discount ID (Senior/PWD/Student)
+          </button>
+          <span id="discountIdFileName" class="license-file-label">
+            No discount ID uploaded yet
+          </span>
+        </div>
+        <span id="discountIdError"
+              style="font-size:12px; color:#ff6b6b; margin-top:4px; display:none;">
+        </span>
+
+        <!-- Hidden fields that actually get submitted -->
+        <input type="hidden" name="wants_discount" id="wants_discount_input" value="no">
+        <input type="hidden" name="discount_type" id="discount_type_input" value="">
+      </section>
+
+      <!-- License section -->
+      <section>
+        <h2 style="font-size: 18px; margin-bottom: 8px;">License</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin: 0;">
+          To keep everyone safe and compliant, we require a clear photo or PDF of your
+          valid driver’s license (or government ID if driver’s license will be presented on pickup).
+          Your booking cannot proceed without uploading an ID.
+        </p>
+
+        <div class="license-row">
+          <!-- Real file input (hidden visually) -->
+          <input
+            id="license_file"
+            name="license_file"
+            type="file"
+            accept="image/*,.pdf"
+            style="display:none;"
+          >
+          <button type="button" id="licenseUploadBtn" class="license-upload-btn">
+            Upload your license ID
+          </button>
+          <span id="licenseFileName" class="license-file-label">
+            No file selected yet
+          </span>
+        </div>
+        <span id="licenseError"
+              style="font-size:12px; color:#ff6b6b; margin-top:4px; display:none;">
+        </span>
+      </section>
+
+      <!-- Policies / Terms -->
+      <section>
+        <h2 style="font-size: 18px; margin-bottom: 8px;">Policies & confirmations</h2>
+        <ul style="margin: 0 0 10px 18px; padding: 0; font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+          <li>Full tank in, full tank out (fuel must be returned at the same level).</li>
+          <li>Late returns may incur additional charges per hour or per day.</li>
+          <li>Driver must present a valid driver’s license and a government-issued ID upon pickup.</li>
+          <li>Any traffic violations, toll fees, or parking fees during the rental period are shouldered by the renter.</li>
+          <li>Cancellation and rebooking are subject to company approval and may include fees.</li>
+        </ul>
+
+        <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 14px; margin-top: 6px;">
+          <input
+            type="checkbox"
+            name="agree_terms"
+            required
+          >
+          <span>
+            I have read and agree to the rental
+            <a href="#" id="openTermsLink" style="color: var(--accent); text-decoration: underline;">
+              terms and conditions
+            </a>.
+          </span>
+        </label>
+      </section>
+
+      <!-- Actions -->
+      <div class="form-actions" style="margin-top: 6px;">
+        <button class="btn" type="submit">Proceed to payment</button>
+        <a class="btn secondary" href="{{ url_for('gallery') }}">Back to cars</a>
+      </div>
+
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
+        Note: The final total, including add-ons and any discounts, will be calculated
+        based on your selected dates and shown on the payment summary page.
+      </p>
+    </form>
+  </div>
+</section>
+
+<!-- TERMS & CONDITIONS MODAL -->
+<div id="termsBackdrop" class="terms-backdrop" aria-hidden="true">
+  <div class="terms-modal" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
+    <div class="terms-modal-header">
+      <h2 id="termsTitle">Rental terms and conditions</h2>
+      <button type="button" class="terms-close-btn" id="closeTermsBtn" aria-label="Close">
+        ✕
+      </button>
+    </div>
+    <div class="terms-modal-body">
+      <p><strong>1. Driver &amp; license</strong></p>
+      <p>The renter and any additional drivers must hold a valid driver’s license and a government-issued ID.</p>
+      <p><strong>2. Use of vehicle</strong></p>
+      <p>The vehicle may only be used for private purposes and on public roads. Racing, off-road use, or any illegal activities are prohibited.</p>
+      <p><strong>3. Fuel policy</strong></p>
+      <p>The vehicle must be returned with the same fuel level as released.</p>
+      <p><strong>4. Fines, tolls, and parking</strong></p>
+      <p>All traffic violations, parking tickets, tow charges, and toll fees are for the account of the renter.</p>
+      <p><strong>5. Damage and accidents</strong></p>
+      <p>Accidents or damage must be reported immediately to the company and local authorities if needed.</p>
+      <p><strong>6. Late return</strong></p>
+      <p>Late returns may incur additional hourly or daily charges.</p>
+      <p><strong>7. Personal belongings</strong></p>
+      <p>The company is not responsible for personal items left in the vehicle.</p>
+      <p><strong>8. Cancellation &amp; rebooking</strong></p>
+      <p>Cancellations and rebookings are subject to approval and may include fees.</p>
+      <p><strong>9. Add-ons &amp; accessories</strong></p>
+      <p>Accessories like child seats, RFID cards, and dashcams must be returned in good condition.</p>
+      <p><strong>10. Acceptance of terms</strong></p>
+      <p>By proceeding with the reservation, you agree to these terms and conditions.</p>
+    </div>
+    <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+      <button type="button" class="btn secondary" id="closeTermsBottom">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    /* Terms modal logic */
+    const openLink = document.getElementById("openTermsLink");
+    const backdrop = document.getElementById("termsBackdrop");
+    const closeBtn = document.getElementById("closeTermsBtn");
+    const closeBottom = document.getElementById("closeTermsBottom");
+
+    function openModal(e) {
+      if (e) e.preventDefault();
+      if (backdrop) {
+        backdrop.classList.add("open");
+        backdrop.setAttribute("aria-hidden", "false");
+      }
+    }
+
+    function closeModal() {
+      if (backdrop) {
+        backdrop.classList.remove("open");
+        backdrop.setAttribute("aria-hidden", "true");
+      }
+    }
+
+    if (openLink) openLink.addEventListener("click", openModal);
+    if (closeBtn) closeBtn.addEventListener("click", closeModal);
+    if (closeBottom) closeBottom.addEventListener("click", closeModal);
+    if (backdrop) {
+      backdrop.addEventListener("click", function (e) {
+        if (e.target === backdrop) closeModal();
+      });
+    }
+
+    /* Discount logic */
+    const toggleButtons = document.querySelectorAll(".discount-toggle-btn");
+    const typeButtons = document.querySelectorAll(".discount-type-btn");
+    const wantsInput = document.getElementById("wants_discount_input");
+    const typeInput = document.getElementById("discount_type_input");
+
+    function setDiscountEnabled(enabled) {
+      typeButtons.forEach(btn => {
+        if (enabled) {
+          btn.classList.remove("disabled");
+        } else {
+          btn.classList.add("disabled");
+          btn.classList.remove("active");
+        }
+      });
+      if (!enabled) {
+        typeInput.value = "";
+      }
+    }
+
+    toggleButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const value = btn.getAttribute("data-discount-toggle"); // "yes" or "no"
+        wantsInput.value = value;
+
+        toggleButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        if (value === "yes") {
+          setDiscountEnabled(true);
+        } else {
+          setDiscountEnabled(false);
+        }
+      });
+    });
+
+    typeButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (btn.classList.contains("disabled")) return;
+        const value = btn.getAttribute("data-discount-type");
+        typeInput.value = value;
+        typeButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      });
+    });
+
+    // initially disabled (since default is "no")
+    setDiscountEnabled(false);
+
+    /* License upload logic */
+    const licenseInput = document.getElementById("license_file");
+    const licenseBtn = document.getElementById("licenseUploadBtn");
+    const licenseLabel = document.getElementById("licenseFileName");
+    const licenseError = document.getElementById("licenseError");
+
+    if (licenseBtn && licenseInput) {
+      licenseBtn.addEventListener("click", () => {
+        licenseInput.click();
+      });
+
+      licenseInput.addEventListener("change", () => {
+        if (licenseInput.files && licenseInput.files.length > 0) {
+          licenseLabel.textContent = licenseInput.files[0].name;
+          if (licenseError) {
+            licenseError.textContent = "";
+            licenseError.style.display = "none";
+          }
+        } else {
+          licenseLabel.textContent = "No file selected yet";
+        }
+      });
+    }
+
+    /* Discount ID upload logic */
+    const discountIdInput = document.getElementById("discount_id_file");
+    const discountIdBtn = document.getElementById("discountIdUploadBtn");
+    const discountIdLabel = document.getElementById("discountIdFileName");
+    const discountIdError = document.getElementById("discountIdError");
+
+    if (discountIdBtn && discountIdInput) {
+      discountIdBtn.addEventListener("click", () => {
+        discountIdInput.click();
+      });
+
+      discountIdInput.addEventListener("change", () => {
+        if (discountIdInput.files && discountIdInput.files.length > 0) {
+          discountIdLabel.textContent = discountIdInput.files[0].name;
+          if (discountIdError) {
+            discountIdError.textContent = "";
+            discountIdError.style.display = "none";
+          }
+        } else {
+          discountIdLabel.textContent = "No discount ID uploaded yet";
+        }
+      });
+    }
+
+    /* Final form validation */
+    const bookingForm = document.getElementById("bookingForm");
+    if (bookingForm) {
+      bookingForm.addEventListener("submit", (e) => {
+        let hasError = false;
+
+        // License always required
+        if (!licenseInput.files || licenseInput.files.length === 0) {
+          hasError = true;
+          licenseError.textContent = "Please upload your license ID before continuing.";
+          licenseError.style.display = "block";
+          licenseError.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        // Discount ID required only if user said "yes"
+        if (wantsInput.value === "yes") {
+          if (!discountIdInput.files || discountIdInput.files.length === 0) {
+            hasError = true;
+            discountIdError.textContent = "Please upload your discount ID (Senior/PWD/Student) or choose No discount.";
+            discountIdError.style.display = "block";
+            discountIdError.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        } else {
+          // clear any old error if user switched to "no"
+          discountIdError.textContent = "";
+          discountIdError.style.display = "none";
+        }
+
+        if (hasError) {
+          e.preventDefault();
+        }
+      });
+    }
+  })();
+</script>
+
+{% endblock %}

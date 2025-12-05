@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Booking Summary - Drive</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:40px }
+    .card { width:420px; margin:0 auto; background:white; padding:20px; border-radius:8px; box-shadow: 0 2px 8px rgba(0,0,0,0.12) }
+    h2 { color:#1c7293; text-align:center }
+    .row { margin:10px 0; font-weight:600 }
+    .muted { font-weight:400; color:#555 }
+    button { margin-top:16px; width:100%; padding:10px; border:none; border-radius:6px; background:#2ecc71; color:white; font-weight:700 }
+    .back { background:#e67e22; color:white; margin-top:8px; text-align:center; padding:10px; border-radius:6px; text-decoration:none; display:block }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Booking Summary</h2>
+
+    <div class="row">Car: <div class="muted">{{ booking['car_name'] }}</div></div>
+    <div class="row">Price per day: <div class="muted">₱{{ booking['price_per_day'] }}</div></div>
+    <div class="row">Days: <div class="muted">{{ booking['days'] }}</div></div>
+    <div class="row">Total: <div class="muted">₱{{ booking['total'] }}</div></div>
+
+    <form method="post">
+      <button type="submit">Confirm Booking</button>
+    </form>
+
+    <a href="/book/{{ booking['car_id'] }}" class="back">← Edit days</a>
+  </div>
+</body>
+</html>

@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Payment summary – {{ car['name'] }}{% endblock %}
+
+{% block content %}
+<section class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+  <h1 style="margin: 0 0 8px;">Review your booking</h1>
+  <p style="margin: 0; color: var(--text-muted);">
+    Please double-check your trip details and total amount before proceeding to payment.
+  </p>
+
+  <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+
+    <!-- Booking details -->
+    <section style="display: flex; flex-direction: column; gap: 12px;">
+      <h2 style="font-size: 18px; margin: 0 0 6px;">Booking details</h2>
+
+      <div>
+        <h3 style="font-size: 14px; margin: 0 0 4px; color: var(--text-muted);">Time and place</h3>
+        <p style="margin: 0;">
+          <strong>Pick-up:</strong>
+          {{ pickup_dt.strftime('%m/%d/%Y, %I:%M %p') }}
+        </p>
+        <p style="margin: 2px 0 0;">
+          <strong>Return:</strong>
+          {{ return_dt.strftime('%m/%d/%Y, %I:%M %p') }}
+        </p>
+        <p style="margin: 6px 0 0;">
+          <strong>Rental duration:</strong>
+          {{ summary.rental_days }} day{% if summary.rental_days != 1 %}s{% endif %}
+        </p>
+      </div>
+
+      <div>
+        <h3 style="font-size: 14px; margin: 12px 0 4px; color: var(--text-muted);">Car</h3>
+        <p style="margin: 0;">
+          <strong>{{ car['name'] }}</strong> – {{ car['car_type'] }}<br>
+          Price per day: ₱{{ '{:,.2f}'.format(summary.price_per_day) }}
+        </p>
+      </div>
+
+      <div>
+        <h3 style="font-size: 14px; margin: 12px 0 4px; color: var(--text-muted);">Add-ons</h3>
+        {% set addons = summary.addons %}
+        {% if not (addons.child_seat or addons.toll_rfid or addons.dashcam) %}
+          <p style="margin: 0;">No add-ons selected.</p>
+        {% else %}
+          <ul style="margin: 0 0 0 18px; padding: 0; font-size: 13px;">
+            {% if addons.child_seat %}
+              <li>Child seat – ₱250.00 / day</li>
+            {% endif %}
+            {% if addons.toll_rfid %}
+              <li>
+                Toll RFID card (Easytrip/Autosweep) – ₱500.00 / day
+                <span style="color: var(--text-muted);">(renter will load the balance)</span>
+              </li>
+            {% endif %}
+            {% if addons.dashcam %}
+              <li>Dashcam – ₱100.00 / day</li>
+            {% endif %}
+          </ul>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Payment summary -->
+    <section style="display: flex; flex-direction: column; gap: 12px;">
+      <h2 style="font-size: 18px; margin: 0 0 6px;">Payment summary</h2>
+
+      <div style="background: rgba(9, 12, 18, 0.9); border-radius: 16px; padding: 16px; border: 1px solid rgba(255,255,255,0.08);">
+        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px;">
+          <span>Rental duration</span>
+          <span>{{ summary.rental_days }} day{% if summary.rental_days != 1 %}s{% endif %}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 14px;">
+          <span>Car rental fee</span>
+          <span>₱{{ '{:,.2f}'.format(summary.rental_fee) }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-top: 4px;">
+          <span>Add-ons price</span>
+          <span>₱{{ '{:,.2f}'.format(summary.addons_total) }}</span>
+        </div>
+
+        <hr style="border-color: rgba(255,255,255,0.08); margin: 10px 0;">
+
+        {% set subtotal = summary.rental_fee + summary.addons_total %}
+        <div style="display: flex; justify-content: space-between; font-size: 14px;">
+          <span>Sub-total</span>
+          <span>₱{{ '{:,.2f}'.format(subtotal) }}</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; font-size: 14px; margin-top: 4px;">
+          <span>
+            Discount
+            {% if summary.discount_rate and summary.discount_rate > 0 %}
+              (
+              {% if summary.discount_type == 'senior' %}Senior{% elif summary.discount_type == 'pwd' %}PWD{% elif summary.discount_type == 'student' %}Student{% endif %}
+              – {{ (summary.discount_rate * 100)|int }}%
+              )
+            {% endif %}
+          </span>
+          <span>
+            {% if summary.discount_amount and summary.discount_amount > 0 %}
+              −₱{{ '{:,.2f}'.format(summary.discount_amount) }}
+            {% else %}
+              ₱0.00
+            {% endif %}
+          </span>
+        </div>
+
+        <hr style="border-color: rgba(255,255,255,0.12); margin: 10px 0;">
+
+        <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 15px;">
+          <span>Total amount</span>
+          <span>₱{{ '{:,.2f}'.format(summary.total_amount) }}</span>
+        </div>
+      </div>
+
+      <form method="post" action="{{ url_for('payment_checkout') }}" style="margin-top: 10px; display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <h3 style="font-size: 14px; margin: 0 0 6px;">Payment method</h3>
+          <label style="display: block; font-size: 14px; margin-bottom: 4px;">
+            <input type="radio" name="payment_method" value="gcash" required>
+            GCash
+          </label>
+          <label style="display: block; font-size: 14px; margin-bottom: 4px;">
+            <input type="radio" name="payment_method" value="maya">
+            Maya
+          </label>
+          <label style="display: block; font-size: 14px;">
+            <input type="radio" name="payment_method" value="card">
+            Debit / Credit card
+          </label>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
+            (Test mode only – this will not charge real money.)
+          </p>
+        </div>
+
+        <div class="form-actions" style="margin-top: 4px;">
+          <button class="btn" type="submit">Pay with PayMongo (test)</button>
+          <a class="btn secondary" href="{{ url_for('book', car_id=car['id']) }}">Back to edit details</a>
+        </div>
+      </form>
+    </section>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Cars{% endblock %}
+
+{% block content %}
+<div>
+  <h1>Available Cars</h1>
+  <p>   
+    Pick from our expanded fleet of twenty vehicles, curated for work trips,
+    family outings, and weekend escapes. Use the filters below to find the
+    perfect car for your trip.
+  </p>
+</div>
+
+{# ------------------ FILTER BAR ------------------ #}
+<form method="get"
+      style="
+        margin-top: 20px;
+        margin-bottom: 24px;
+        padding: 20px;
+        border-radius: 16px;
+        background: rgba(9,12,18,0.88);
+        border: 1px solid rgba(255,255,255,0.12);
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        align-items: end;
+      ">
+
+  <!-- TYPE -->
+  <div>
+    <label style="font-size: 13px; font-weight: 600;">Type</label>
+    <select name="car_type" class="filter-input">
+      <option value="">All types</option>
+      <option value="Sedan"  {% if request.args.get('car_type') == 'Sedan' %}selected{% endif %}>Sedan</option>
+      <option value="SUV"    {% if request.args.get('car_type') == 'SUV' %}selected{% endif %}>SUV</option>
+      <option value="MPV"    {% if request.args.get('car_type') == 'MPV' %}selected{% endif %}>MPV</option>
+      <option value="Van"    {% if request.args.get('car_type') == 'Van' %}selected{% endif %}>Van</option>
+      <option value="Pickup" {% if request.args.get('car_type') == 'Pickup' %}selected{% endif %}>Pickup</option>
+    </select>
+  </div>
+
+  <!-- SEATERS -->
+  <div>
+    <label style="font-size: 13px; font-weight: 600;">Seaters</label>
+    <select name="seaters" class="filter-input">
+      <option value="">Any</option>
+      <option value="4" {% if request.args.get('seaters') == '4' %}selected{% endif %}>4 seats</option>
+      <option value="5" {% if request.args.get('seaters') == '5' %}selected{% endif %}>5 seats</option>
+      <option value="6" {% if request.args.get('seaters') == '6' %}selected{% endif %}>6 seats</option>
+      <option value="7" {% if request.args.get('seaters') == '7' %}selected{% endif %}>7 seats</option>
+      <option value="8" {% if request.args.get('seaters') == '8' %}selected{% endif %}>8 seats</option>
+      <option value="9-18" {% if request.args.get('seaters') == '9-18' %}selected{% endif %}>9–18 seats</option>
+    </select>
+  </div>
+
+  <!-- TRANSMISSION -->
+  <div>
+    <label style="font-size: 13px; font-weight: 600;">Transmission</label>
+    <select name="transmission" class="filter-input">
+      <option value="">Any</option>
+      <option value="Automatic" {% if request.args.get('transmission') == 'Automatic' %}selected{% endif %}>Automatic</option>
+      <option value="Manual" {% if request.args.get('transmission') == 'Manual' %}selected{% endif %}>Manual</option>
+      <option value="Automatic or Manual" {% if request.args.get('transmission') == 'Automatic or Manual' %}selected{% endif %}>
+        Automatic or Manual
+      </option>
+    </select>
+  </div>
+
+  <!-- PRICE -->
+  <div>
+    <label style="font-size: 13px; font-weight: 600;">Price (₱/day)</label>
+    <div style="display: flex; gap: 10px;">
+      <input type="number" name="min_price" placeholder="Min" value="{{ request.args.get('min_price','') }}" class="filter-input">
+      <input type="number" name="max_price" placeholder="Max" value="{{ request.args.get('max_price','') }}" class="filter-input">
+    </div>
+  </div>
+
+  <!-- BUTTONS -->
+  <div style="grid-column: 1 / -1; display: flex; gap: 12px;">
+    <button type="submit" class="filter-btn">APPLY FILTERS</button>
+    <a href="{{ url_for('gallery') }}" class="filter-btn secondary">CLEAR</a>
+  </div>
+
+</form>
+
+{# ------------------ CAR LIST ------------------ #}
+{% if cars %}
+  <div class="grid">
+    {% for car in cars %}
+      <article class="card" style="padding: 0;">
+        {% if car['image_url'] %}
+          <img
+            class="car-image"
+            src="{{ url_for('static', filename=car['image_url']) }}"
+            alt="{{ car['name'] }}"
+          >
+        {% else %}
+          <img
+            class="car-image"
+            src="https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=900&q=80"
+            alt="{{ car['name'] }}"
+          >
+        {% endif %}
+
+        <div style="padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+          <div class="badge">{{ car['car_type'] }}</div>
+          <h2 style="margin-bottom: 4px; font-size: 20px;">{{ car['name'] }}</h2>
+          <p style="margin-bottom: 0;">
+            ₱{{ '{:,.2f}'.format(car['price_per_day']) }} per day
+          </p>
+
+          {% if car.get('transmission_label') or car.get('seaters_label') %}
+            <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">
+              {% if car.get('transmission_label') %}
+                ⚙️ <strong>{{ car['transmission_label'] }}</strong><br>
+              {% endif %}
+              {% if car.get('seaters_label') %}
+                👥 Seaters: <strong>{{ car['seaters_label'] }}</strong>
+              {% endif %}
+            </p>
+          {% endif %}
+
+          <a class="btn" href="{{ url_for('book', car_id=car['id']) }}" style="margin-top: 10px;">
+            Reserve
+          </a>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    <h2>No cars match your filters</h2>
+    <p>Try adjusting the filters above or clearing them.</p>
+  </div>
+{% endif %}
+
+<style>
+  .filter-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: white;
+    font-size: 14px;
+  }
+
+  .filter-input::placeholder {
+    color: rgba(255,255,255,0.35);
+  }
+
+  .filter-btn {
+    flex: 1;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    text-align: center;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.25s ease;
+    background: #FFC400;
+    color: #000;
+    border: none;
+  }
+
+  .filter-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(255,196,0,0.45);
+  }
+
+  .filter-btn.secondary {
+    background: transparent;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .filter-btn.secondary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(255,255,255,0.15);
+  }
+</style>
+
+{% endblock %}

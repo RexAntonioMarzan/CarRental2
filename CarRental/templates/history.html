@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}My Bookings{% endblock %}
+
+{% block content %}
+<div>
+  <h1>Booking History</h1>
+  <p>Track your upcoming and past reservations. You can cancel an active booking with a single click.</p>
+</div>
+
+{% if bookings %}
+  <div style="margin-top: 24px; overflow-x: auto;">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Car</th>
+          <th scope="col">Type</th>
+          <th scope="col">Days</th>
+          <th scope="col">Total</th>
+          <th scope="col">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for booking in bookings %}
+          <tr>
+            <td>{{ booking['car_name'] }}</td>
+            <td>{{ booking['car_type'] }}</td>
+            <td>{{ booking['days'] }}</td>
+            <td>₱{{ '{:,.2f}'.format(booking['total_price']) }}</td>
+            <td>
+              <form method="post" action="{{ url_for('cancel_booking', booking_id=booking['id']) }}">
+                <button class="btn danger" type="submit">Cancel booking</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="empty-state" style="margin-top: 32px;">
+    <h2>No bookings yet</h2>
+    <p>Browse the fleet to start a new reservation.</p>
+    <a class="btn" href="{{ url_for('gallery') }}">Browse cars</a>
+  </div>
+{% endif %}
+{% endblock %}

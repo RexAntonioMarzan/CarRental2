@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{% block admin_title %}{% endblock %}{% endblock %}
+
+{% block content %}
+<style>
+  .admin-shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 22px;
+    min-height: calc(100vh - 140px);
+  }
+  .sidebar {
+    position: sticky;
+    top: 80px;
+    height: max-content;
+    padding: 18px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    box-shadow: 0 24px 40px rgba(0,0,0,0.4);
+  }
+  .sidebar h3 {
+    margin: 0 0 10px;
+    font-size: 16px;
+    color: var(--accent);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+  .side-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .side-link {
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: var(--text-primary);
+    border: 1px solid transparent;
+  }
+  .side-link:hover,
+  .side-link:focus-visible {
+    background: rgba(255,186,8,.16);
+    border-color: rgba(255,186,8,.34);
+  }
+  .side-link.active {
+    background: rgba(255,186,8,.22);
+    border-color: rgba(255,186,8,.38);
+  }
+  @media (max-width: 920px) {
+    .admin-shell {
+      grid-template-columns: 1fr;
+    }
+    .sidebar { position: static; }
+  }
+</style>
+
+<div class="admin-shell">
+  <aside class="sidebar">
+    <h3>Admin</h3>
+    <nav class="side-nav">
+      <a class="side-link{% if request.endpoint == 'admin_dashboard' %} active{% endif %}" href="{{ url_for('admin_dashboard') }}">Overview</a>
+      <a class="side-link{% if request.endpoint == 'admin_cars' %} active{% endif %}" href="{{ url_for('admin_cars') }}">Cars</a>
+      <a class="side-link{% if request.endpoint == 'admin_bookings' %} active{% endif %}" href="{{ url_for('admin_bookings') }}">Bookings</a>
+      <a class="side-link" href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+  </aside>
+  <section>
+    {% block admin_content %}{% endblock %}
+  </section>
+</div>
+{% endblock %}
+

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Admin – Bookings{% endblock %}
+
+{% block content %}
+<section class="card" style="padding: 20px;">
+  <h1 style="margin-bottom: 16px;">All bookings</h1>
+
+  {% if bookings %}
+    <div class="table-wrapper">
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <thead>
+          <tr>
+            <th style="text-align:left; padding: 6px 8px;">ID</th>
+            <th style="text-align:left; padding: 6px 8px;">User</th>
+            <th style="text-align:left; padding: 6px 8px;">Email</th>
+            <th style="text-align:left; padding: 6px 8px;">Car</th>
+            <th style="text-align:left; padding: 6px 8px;">Type</th>
+            <th style="text-align:right; padding: 6px 8px;">Days</th>
+            <th style="text-align:right; padding: 6px 8px;">Total (₱)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in bookings %}
+            <tr>
+              <td style="padding: 6px 8px;">{{ b.id }}</td>
+              <td style="padding: 6px 8px;">{{ b.username or '—' }}</td>
+              <td style="padding: 6px 8px;">{{ b.email or '—' }}</td>
+              <td style="padding: 6px 8px;">{{ b.car_name or '—' }}</td>
+              <td style="padding: 6px 8px;">{{ b.car_type or '—' }}</td>
+              <td style="padding: 6px 8px; text-align:right;">{{ b.days }}</td>
+              <td style="padding: 6px 8px; text-align:right;">₱{{ '{:,.2f}'.format(b.total_price or 0) }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No bookings found.</p>
+  {% endif %}
+</section>
+{% endblock %}

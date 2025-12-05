@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<style>
+  .home-wrapper {
+    max-width: 1120px;
+    margin: 40px auto 72px;
+    padding: 0 16px;
+  }
+
+  .home-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .brand-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(11, 30, 51, 0.85);
+    border: 1px solid rgba(255, 186, 8, 0.4);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(249, 250, 252, 0.85);
+  }
+
+  .brand-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ffba08;
+    box-shadow: 0 0 12px rgba(255, 186, 8, 0.8);
+  }
+
+  .user-chip {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.85);
+    color: rgba(226, 232, 240, 0.9);
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .user-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffba08, #ffd453);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #111827;
+    font-size: 14px;
+  }
+
+  .home-hero {
+    position: relative;
+    min-height: 58vh;
+    padding: 52px 40px 40px;
+    border-radius: 32px;
+    overflow: hidden;
+    background: radial-gradient(circle at top left, rgba(255, 186, 8, 0.18) 0, transparent 55%),
+                radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.25) 0, transparent 55%),
+                linear-gradient(135deg, rgba(6, 20, 36, 0.94), rgba(15, 56, 83, 0.92));
+    backdrop-filter: blur(18px);
+    box-shadow: 0 30px 80px rgba(3, 7, 18, 0.85);
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 32px;
+    align-items: center;
+    isolation: isolate;
+  }
+
+  .home-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+  }
+
+  .hero-main {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: rgba(226, 232, 240, 0.9);
+    margin-bottom: 12px;
+  }
+
+  .hero-pill span.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
+  }
+
+  .hero-title {
+    font-size: clamp(34px, 5vw, 44px);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+    margin-bottom: 10px;
+  }
+
+  .hero-title span.highlight {
+    color: #ffda47;
+  }
+
+  .hero-subtitle {
+    font-size: 15px;
+    line-height: 1.7;
+    max-width: 520px;
+    margin: 0 0 24px;
+    color: rgba(226, 232, 240, 0.86);
+  }
+
+  .hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 26px;
+  }
+
+  .hero-badge {
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    color: rgba(203, 213, 225, 0.9);
+    background: rgba(15, 23, 42, 0.7);
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .hero-actions a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 13px 30px;
+    border-radius: 999px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 12px;
+    background: linear-gradient(135deg, #ffba08, #ffd453);
+    color: #111827;
+    box-shadow: 0 18px 32px rgba(250, 204, 21, 0.55);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    text-decoration: none;
+  }
+
+  .hero-actions a svg {
+    margin-left: 8px;
+  }
+
+  .hero-actions a:hover,
+  .hero-actions a:focus-visible {
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, #ffd453, #ffe58f);
+    box-shadow: 0 24px 45px rgba(250, 204, 21, 0.75);
+  }
+
+  .hero-actions a.secondary {
+    background: transparent;
+    color: rgba(226, 232, 240, 0.96);
+    border: 1px solid rgba(148, 163, 184, 0.7);
+    box-shadow: none;
+  }
+
+  .hero-actions a.secondary:hover,
+  .hero-actions a.secondary:focus-visible {
+    background: rgba(15, 23, 42, 0.9);
+    transform: translateY(-1px);
+  }
+
+  .hero-side {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .mini-card {
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.7);
+    font-size: 13px;
+    color: rgba(226, 232, 240, 0.9);
+  }
+
+  .mini-card-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(148, 163, 184, 0.95);
+    margin-bottom: 6px;
+  }
+
+  .mini-card-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .mini-number {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffda47;
+  }
+
+  .mini-chip {
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(22, 163, 74, 0.15);
+    color: #4ade80;
+    font-size: 11px;
+  }
+
+  .mini-features {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    font-size: 12px;
+    color: rgba(209, 213, 219, 0.95);
+  }
+
+  .mini-features span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mini-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(248, 250, 252, 0.9);
+  }
+
+  /* car icon */
+  .hero-icon {
+    width: 110px;
+    height: 64px;
+    filter: drop-shadow(0 12px 25px rgba(0, 0, 0, 0.35));
+    animation: floatCar 3.6s ease-in-out infinite;
+    margin-bottom: 8px;
+  }
+
+  @keyframes floatCar {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .home-hero {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 38px 26px 26px;
+      gap: 24px;
+    }
+    .hero-subtitle {
+      max-width: none;
+    }
+    .hero-actions a {
+      flex: 1 1 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .home-wrapper {
+      margin-top: 24px;
+    }
+    .home-hero {
+      border-radius: 24px;
+      padding: 30px 20px 24px;
+    }
+    .home-top-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>
+
+<div class="home-wrapper">
+  <div class="home-top-row">
+    <div class="brand-chip">
+      <span class="brand-dot"></span>
+      DRIVE CAR RENTAL • DASHBOARD
+    </div>
+    {% if current_username %}
+      <div class="user-chip">
+        <span class="user-dot">
+          {{ current_username[0]|upper }}
+        </span>
+        <span>Signed in as <strong>{{ current_username }}</strong></span>
+      </div>
+    {% endif %}
+  </div>
+
+  <section class="home-hero">
+    <div class="hero-main">
+      <div class="hero-pill">
+        <span class="dot"></span>
+        READY TO HIT THE ROAD
+      </div>
+
+      <svg class="hero-icon" viewBox="0 0 120 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Drive Car Rental logo">
+        <defs>
+          <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#0b1e33"/>
+            <stop offset="100%" stop-color="#1c7293"/>
+          </linearGradient>
+        </defs>
+        <path d="M12 36a8 8 0 0 1 7-7.94l16.6-1.13a6 6 0 0 0 4.87-3.26l5-9.91A12 12 0 0 1 56.49 8h20.74a12 12 0 0 1 9.33 4.48l11.41 14.13A16 16 0 0 1 102 36v12H12z" fill="url(#bodyGradient)"/>
+        <rect x="20" y="30" width="72" height="16" rx="8" fill="rgba(255,255,255,0.12)"/>
+        <circle cx="32" cy="52" r="9" fill="#0b1e33" stroke="#ffba08" stroke-width="3"/>
+        <circle cx="88" cy="52" r="9" fill="#0b1e33" stroke="#ffba08" stroke-width="3"/>
+        <rect x="54" y="18" width="20" height="10" rx="3" fill="#e6f4ff" opacity="0.75"/>
+      </svg>
+
+      <h1 class="hero-title">
+        Welcome{% if current_username %}, <span class="highlight">{{ current_username }}</span>{% endif %}
+      </h1>
+
+      <p class="hero-subtitle">
+        You’re logged in to Drive Car Rental. Browse available vehicles, create a new booking,
+        or review your previous trips in just a few clicks.
+      </p>
+
+      <div class="hero-badges">
+        <span class="hero-badge">Instant online booking</span>
+        <span class="hero-badge">Secure payments</span>
+        <span class="hero-badge">Flexible rental options</span>
+      </div>
+
+      <div class="hero-actions">
+        <a href="{{ url_for('gallery') }}">
+          View Cars
+          <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M5 10h7.2L9 6.8 10.2 5.5 15 10.3 10.2 15 9 13.7 12.2 10.5H5z" fill="currentColor" />
+          </svg>
+        </a>
+        <a class="secondary" href="{{ url_for('history') }}">
+          Booking History
+        </a>
+      </div>
+    </div>
+
+    <aside class="hero-side">
+      <div class="mini-card">
+        <div class="mini-card-title">Your rental hub</div>
+        <div class="mini-card-main">
+          <div>
+            <div>All your rides in one place.</div>
+            <div style="font-size:12px;color:rgba(148,163,184,0.95);margin-top:4px;">
+              Browse, book, and manage reservations anytime.
+            </div>
+          </div>
+          <div class="mini-number">24/7</div>
+        </div>
+      </div>
+
+      <div class="mini-card">
+        <div class="mini-card-title">Why renters choose us</div>
+        <div class="mini-features">
+          <span><span class="mini-dot"></span> Clean & well-maintained vehicles</span>
+          <span><span class="mini-dot"></span> Transparent pricing</span>
+          <span><span class="mini-dot"></span> Convenient add-ons</span>
+          <span><span class="mini-dot"></span> Fast confirmation</span>
+        </div>
+      </div>
+    </aside>
+  </section>
+</div>
+{% endblock %}

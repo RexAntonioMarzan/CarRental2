@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 22px;">
+  <section class="card">
+    <h1 style="margin: 0 0 6px;">Account</h1>
+    <p style="margin: 0 0 12px;">Manage your details and track your activity.</p>
+    <div style="display:flex; gap:14px; align-items:center;">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18); font-weight:700;">
+        {{ user['username'][0:1] | upper }}
+      </div>
+      <div>
+        <div style="font-weight:600;">{{ user['username'] }}</div>
+        <div style="font-size:13px; color: var(--text-muted);">Member ID: {{ user['id'] }}</div>
+      </div>
+    </div>
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); margin-top: 10px;">
+      <article class="card" style="padding:16px;">
+        <div style="font-size:13px; color: var(--text-muted);">Total bookings</div>
+        <div style="font-size:26px; font-weight:700;">{{ stats.booking_count }}</div>
+      </article>
+      <article class="card" style="padding:16px;">
+        <div style="font-size:13px; color: var(--text-muted);">Total spent</div>
+        <div style="font-size:26px; font-weight:700;">₱{{ '{:,.2f}'.format(stats.total_spent) }}</div>
+      </article>
+    </div>
+    <div class="form-actions" style="margin-top: 12px;">
+      <a class="btn" href="{{ url_for('gallery') }}">Browse cars</a>
+      <a class="btn secondary" href="{{ url_for('history') }}">View bookings</a>
+    </div>
+  </section>
+
+  <section class="card" style="grid-column: 1/-1;">
+    <h2 style="margin:0 0 10px;">Recent bookings</h2>
+    {% if recent %}
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+          <tr>
+            <th scope="col">Booking #</th>
+            <th scope="col">Car</th>
+            <th scope="col">Days</th>
+            <th scope="col">Total</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for row in recent %}
+            <tr>
+              <td>#{{ row['id'] }}</td>
+              <td>{{ row['car_name'] }}</td>
+              <td>{{ row['days'] }}</td>
+              <td>₱{{ '{:,.2f}'.format(row['total_price']) }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h3>No recent activity</h3>
+        <p>Start a reservation to see it here.</p>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+

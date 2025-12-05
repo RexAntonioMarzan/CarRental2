@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Admin – Cars{% endblock %}
+
+{% block content %}
+<section class="card" style="padding: 20px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+    <h1 style="margin:0;">Manage cars</h1>
+    <a class="btn" href="{{ url_for('admin_car_new') }}">+ Add new car</a>
+  </div>
+
+  {% if cars %}
+    <div class="table-wrapper">
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <thead>
+          <tr>
+            <th style="text-align:left; padding: 6px 8px;">ID</th>
+            <th style="text-align:left; padding: 6px 8px;">Name</th>
+            <th style="text-align:left; padding: 6px 8px;">Type</th>
+            <th style="text-align:right; padding: 6px 8px;">Price / day</th>
+            <th style="text-align:left; padding: 6px 8px;">Image path</th>
+            <th style="text-align:right; padding: 6px 8px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for car in cars %}
+            <tr>
+              <td style="padding: 6px 8px;">{{ car.id }}</td>
+              <td style="padding: 6px 8px;">{{ car.name }}</td>
+              <td style="padding: 6px 8px;">{{ car.car_type }}</td>
+              <td style="padding: 6px 8px; text-align:right;">₱{{ '{:,.2f}'.format(car.price_per_day) }}</td>
+              <td style="padding: 6px 8px;">{{ car.image_url or '—' }}</td>
+              <td style="padding: 6px 8px; text-align:right;">
+                <a class="btn secondary" href="{{ url_for('admin_car_edit', car_id=car.id) }}">Edit</a>
+                <form method="post"
+                      action="{{ url_for('admin_car_delete', car_id=car.id) }}"
+                      style="display:inline;"
+                      onsubmit="return confirm('Delete this car?');">
+                  <button class="btn secondary" type="submit">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No cars found.</p>
+  {% endif %}
+</section>
+{% endblock %}

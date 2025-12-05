@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% extends "base.html" %}
+{% block title %}Admin – Users{% endblock %}
+
+{% block content %}
+<section class="card" style="padding: 20px;">
+  <h1 style="margin-bottom: 16px;">Users</h1>
+
+  {% if users %}
+    <div class="table-wrapper">
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+        <thead>
+          <tr>
+            <th style="text-align:left; padding: 6px 8px;">ID</th>
+            <th style="text-align:left; padding: 6px 8px;">Username</th>
+            <th style="text-align:left; padding: 6px 8px;">Email</th>
+            <th style="text-align:left; padding: 6px 8px;">Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+            <tr>
+              <td style="padding: 6px 8px;">{{ u.id }}</td>
+              <td style="padding: 6px 8px;">{{ u.username }}</td>
+              <td style="padding: 6px 8px;">{{ u.email or '—' }}</td>
+              <td style="padding: 6px 8px;">
+                {% if u.is_admin %}Admin{% else %}User{% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No users found.</p>
+  {% endif %}
+</section>
+{% endblock %}
+
+</body>
+</html>
